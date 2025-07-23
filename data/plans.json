@@ -1,0 +1,147 @@
+{
+  "plans": [
+    {
+      "id": "mobile-basic",
+      "name": "Basic Mobile Plan",
+      "category": "mobile",
+      "price": 299,
+      "currency": "INR",
+      "duration": "monthly",
+      "features": [
+        "2GB Daily Data",
+        "Unlimited Calls",
+        "100 SMS/day",
+        "28 Days Validity"
+      ],
+      "description": "Perfect for light users with essential connectivity needs",
+      "popular": false,
+      "available": true
+    },
+    {
+      "id": "mobile-premium",
+      "name": "Premium Mobile Plan",
+      "category": "mobile",
+      "price": 599,
+      "currency": "INR",
+      "duration": "monthly",
+      "features": [
+        "4GB Daily Data",
+        "Unlimited Calls",
+        "100 SMS/day",
+        "Netflix Mobile Subscription",
+        "28 Days Validity"
+      ],
+      "description": "Best value plan with entertainment benefits",
+      "popular": true,
+      "available": true
+    },
+    {
+      "id": "mobile-unlimited",
+      "name": "Unlimited Mobile Plan",
+      "category": "mobile",
+      "price": 999,
+      "currency": "INR",
+      "duration": "monthly",
+      "features": [
+        "Unlimited Data",
+        "Unlimited Calls",
+        "100 SMS/day",
+        "Netflix + Amazon Prime",
+        "Disney+ Hotstar",
+        "28 Days Validity"
+      ],
+      "description": "Ultimate plan for heavy data users",
+      "popular": false,
+      "available": true
+    },
+    {
+      "id": "fiber-basic",
+      "name": "Fiber Basic Internet",
+      "category": "internet",
+      "price": 799,
+      "currency": "INR",
+      "duration": "monthly",
+      "features": [
+        "100 Mbps Speed",
+        "Unlimited Data",
+        "Free Installation",
+        "24/7 Support"
+      ],
+      "description": "High-speed fiber internet for home use",
+      "popular": false,
+      "available": true
+    },
+    {
+      "id": "fiber-premium",
+      "name": "Fiber Premium Internet",
+      "category": "internet",
+      "price": 1299,
+      "currency": "INR",
+      "duration": "monthly",
+      "features": [
+        "200 Mbps Speed",
+        "Unlimited Data",
+        "Free Installation",
+        "Netflix Subscription",
+        "24/7 Priority Support"
+      ],
+      "description": "Premium fiber internet with entertainment benefits",
+      "popular": true,
+      "available": true
+    },
+    {
+      "id": "tv-basic",
+      "name": "Basic TV Package",
+      "category": "tv",
+      "price": 399,
+      "currency": "INR",
+      "duration": "monthly",
+      "features": [
+        "150+ Channels",
+        "HD Quality",
+        "Free Set-top Box",
+        "Recording Feature"
+      ],
+      "description": "Essential TV package for family entertainment",
+      "popular": false,
+      "available": true
+    },
+    {
+      "id": "bundle-family",
+      "name": "Family Bundle",
+      "category": "bundle",
+      "price": 1899,
+      "currency": "INR",
+      "duration": "monthly",
+      "features": [
+        "200 Mbps Fiber Internet",
+        "Premium TV Package (300+ Channels)",
+        "2 Mobile Connections (4GB each)",
+        "Netflix + Amazon Prime",
+        "Free Installation & Setup"
+      ],
+      "description": "Complete family package with internet, TV, and mobile",
+      "popular": true,
+      "available": true
+    },
+    {
+      "id": "bundle-business",
+      "name": "Business Bundle",
+      "category": "bundle",
+      "price": 2999,
+      "currency": "INR",
+      "duration": "monthly",
+      "features": [
+        "500 Mbps Dedicated Internet",
+        "5 Mobile Connections",
+        "Business TV Package",
+        "Static IP Address",
+        "Priority Support",
+        "Free Installation"
+      ],
+      "description": "Comprehensive solution for small businesses",
+      "popular": false,
+      "available": true
+    }
+  ]
+}

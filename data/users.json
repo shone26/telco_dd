@@ -1,0 +1,67 @@
+{
+  "users": [
+    {
+      "id": "user001",
+      "username": "john.doe",
+      "password": "password123",
+      "email": "john.doe@email.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "phone": "+91-9876543210",
+      "currentPlan": {
+        "planId": "mobile-premium",
+        "activationDate": "2024-01-15",
+        "renewalDate": "2025-01-15",
+        "status": "active",
+        "autoRenewal": true
+      },
+      "paymentHistory": [
+        {
+          "transactionId": "txn001",
+          "planId": "mobile-premium",
+          "amount": 599,
+          "date": "2024-01-15",
+          "status": "completed",
+          "paymentMethod": "Credit Card"
+        }
+      ]
+    },
+    {
+      "id": "user002",
+      "username": "jane.smith",
+      "password": "password456",
+      "email": "jane.smith@email.com",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "phone": "+91-9876543211",
+      "currentPlan": null,
+      "paymentHistory": []
+    },
+    {
+      "id": "user003",
+      "username": "test.user",
+      "password": "test123",
+      "email": "test.user@email.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "phone": "+91-9876543212",
+      "currentPlan": {
+        "planId": "fiber-basic",
+        "activationDate": "2024-06-01",
+        "renewalDate": "2024-12-01",
+        "status": "expiring_soon",
+        "autoRenewal": false
+      },
+      "paymentHistory": [
+        {
+          "transactionId": "txn002",
+          "planId": "fiber-basic",
+          "amount": 799,
+          "date": "2024-06-01",
+          "status": "completed",
+          "paymentMethod": "Debit Card"
+        }
+      ]
+    }
+  ]
+}

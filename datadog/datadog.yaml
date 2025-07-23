@@ -1,0 +1,150 @@
+# Datadog Agent configuration for telecom application
+
+# API key (set via environment variable DD_API_KEY)
+# api_key: YOUR_API_KEY_HERE
+
+# Site (default is datadoghq.com)
+site: ap1.datadoghq.com
+
+# Hostname (will be set automatically if not specified)
+# hostname: telecom-app
+
+# Tags applied to all metrics, traces, and logs
+tags:
+  - env:production
+  - service:telecom-app
+  - version:1.0.0
+  - team:telecom
+
+# Enable APM (Application Performance Monitoring)
+apm_config:
+  enabled: true
+  env: production
+  receiver_port: 8126
+  apm_non_local_traffic: true
+  max_traces_per_second: 50
+  analyzed_rate_by_service:
+    telecom-backend|*: 1.0
+    telecom-frontend|*: 1.0
+  max_events_per_second: 200
+  max_memory: 500000000
+  max_cpu_percent: 50
+
+# Enable DogStatsD for custom metrics
+dogstatsd_config:
+  enabled: true
+  port: 8125
+  non_local_traffic: true
+
+# Enable logs collection
+logs_enabled: true
+logs_config:
+  container_collect_all: true
+  processing_rules:
+    - type: exclude_at_match
+      name: exclude_healthcheck
+      pattern: "GET /health"
+
+# Process monitoring - disabled to avoid system-probe issues
+process_config:
+  enabled: false
+  container_collection:
+    enabled: false
+  process_collection:
+    enabled: false
+
+# Network monitoring - disabled to avoid eBPF requirements
+network_config:
+  enabled: false
+
+# System probe configuration - explicitly disable to prevent startup issues
+system_probe_config:
+  enabled: false
+
+# Disable system-probe service entirely
+enable_system_probe: false
+  
+# Disable eBPF-based features that require elevated privileges
+runtime_security_config:
+  enabled: false
+
+# Disable compliance monitoring that requires system access
+compliance_config:
+  enabled: false
+
+# Container monitoring
+container_cgroup_root: /host/sys/fs/cgroup
+container_proc_root: /host/proc
+
+# Enable integrations
+integrations:
+  # PostgreSQL monitoring
+  postgres:
+    init_config:
+    instances:
+      - host: database
+        port: 5432
+        username: telecom_user
+        password: telecom_password
+        dbname: telecom_db
+        tags:
+          - db:telecom
+          - env:production
+
+  # Redis monitoring
+  redisdb:
+    init_config:
+    instances:
+      - host: redis
+        port: 6379
+        tags:
+          - cache:redis
+          - env:production
+
+  # Nginx monitoring
+  nginx:
+    init_config:
+    instances:
+      - nginx_status_url: http://nginx:80/nginx_status
+        tags:
+          - proxy:nginx
+          - env:production
+
+# Log processing rules
+logs_config:
+  processing_rules:
+    # Exclude health check logs to reduce noise
+    - type: exclude_at_match
+      name: exclude_health_checks
+      pattern: "GET /health|GET /api/health"
+    
+    # Parse JSON logs
+    - type: mask_sequences
+      name: mask_sensitive_data
+      replace_placeholder: "[MASKED]"
+      pattern: "password|token|secret|key"
+
+# Enable cluster agent (if using Kubernetes)
+cluster_agent:
+  enabled: false
+
+# Enable external metrics provider (if using Kubernetes)
+external_metrics:
+  enabled: false
+
+# Compliance monitoring
+compliance_config:
+  enabled: false
+
+# Security monitoring
+runtime_security_config:
+  enabled: false
+
+# Enable inventories for better asset tracking
+inventories_configuration_enabled: true
+inventories_checks_configuration_enabled: true
+
+# Telemetry
+telemetry:
+  enabled: true
+  checks: ["*"]
