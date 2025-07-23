@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - TeleConnect</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">TeleConnect</div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/plans">Plans</a></li>
+                    <li><a href="/profile" class="active">Profile</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                <span>Welcome, <%= user.username %></span>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <h1>My Profile</h1>
+            <p class="mb-4">Manage your account information and preferences.</p>
+
+            <% if (locals.error) { %>
+                <div class="alert alert-error">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <!-- Profile Information -->
+            <div class="profile-section">
+                <h2>Personal Information</h2>
+                <div class="profile-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" value="<%= profile.first_name || '' %>" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" value="<%= profile.last_name || '' %>" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" value="<%= profile.username || '' %>" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" value="<%= profile.email || '' %>" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" value="<%= profile.phone || '' %>" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Member Since</label>
+                            <input type="text" value="<%= profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A' %>" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Plans Section -->
+            <% if (profile.plans_history && profile.plans_history.length > 0) { %>
+                <div class="profile-section mt-4">
+                    <h2>My Plans</h2>
+                    <div class="plans-list">
+                        <% profile.plans_history.forEach(plan => { %>
+                            <div class="plan-item">
+                                <div class="plan-info">
+                                    <h4><%= plan.plan_name %></h4>
+                                    <p class="plan-category"><%= plan.plan_category %></p>
+                                    <p class="plan-status status-<%= plan.status %>"><%= plan.status.toUpperCase() %></p>
+                                </div>
+                                <div class="plan-dates">
+                                    <p><strong>Activated:</strong> <%= new Date(plan.activation_date).toLocaleDateString() %></p>
+                                    <p><strong>Renewal:</strong> <%= new Date(plan.renewal_date).toLocaleDateString() %></p>
+                                </div>
+                                <div class="plan-actions">
+                                    <% if (plan.status === 'active') { %>
+                                        <button class="btn btn-secondary btn-sm" onclick="toggleAutoRenewal('<%= plan.id %>', <%= plan.auto_renewal %>)">
+                                            <%= plan.auto_renewal ? 'Disable' : 'Enable' %> Auto-Renewal
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onclick="cancelPlan('<%= plan.id %>')">
+                                            Cancel Plan
+                                        </button>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Payment History Section -->
+            <% if (profile.payment_history && profile.payment_history.length > 0) { %>
+                <div class="profile-section mt-4">
+                    <h2>Payment History</h2>
+                    <div class="payments-list">
+                        <div class="payment-header">
+                            <span>Date</span>
+                            <span>Plan</span>
+                            <span>Amount</span>
+                            <span>Status</span>
+                            <span>Method</span>
+                        </div>
+                        <% profile.payment_history.forEach(payment => { %>
+                            <div class="payment-item">
+                                <span><%= new Date(payment.created_at).toLocaleDateString() %></span>
+                                <span><%= payment.plan_name || 'N/A' %></span>
+                                <span>₹<%= payment.amount %></span>
+                                <span class="status-<%= payment.status %>"><%= payment.status.toUpperCase() %></span>
+                                <span><%= payment.payment_method %></span>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <script>
+        async function toggleAutoRenewal(planId, currentStatus) {
+            try {
+                const response = await fetch(`/plans/toggle-auto-renewal/${planId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Failed to update auto-renewal');
+                }
+            } catch (error) {
+                console.error('Error toggling auto-renewal:', error);
+                alert('Network error');
+            }
+        }
+
+        async function cancelPlan(planId) {
+            if (!confirm('Are you sure you want to cancel this plan?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/plans/cancel/${planId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Plan cancelled successfully');
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Failed to cancel plan');
+                }
+            } catch (error) {
+                console.error('Error cancelling plan:', error);
+                alert('Network error');
+            }
+        }
+    </script>
+
+    <style>
+        .profile-section {
+            margin-bottom: 3rem;
+        }
+        
+        .form-group input[readonly] {
+            background-color: #f8f9fa;
+            color: #666;
+        }
+        
+        .plan-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            padding: 1.5rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        
+        .plan-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        
+        .plan-category {
+            color: #666;
+            margin: 0.25rem 0;
+        }
+        
+        .plan-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-direction: column;
+        }
+        
+        .payments-list {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .payment-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .payment-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+        
+        .payment-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-completed {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .status-failed {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .plan-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .payment-header {
+                display: none;
+            }
+            
+            .payment-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+                border: 1px solid #eee;
+                margin-bottom: 1rem;
+                border-radius: 8px;
+            }
+        }
+    </style>
+</body>
+</html>

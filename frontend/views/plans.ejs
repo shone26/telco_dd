@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plans - TeleConnect</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">TeleConnect</div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/plans" class="active">Plans</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                <span>Welcome, <%= user.username %></span>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <h1>Available Plans</h1>
+            <p class="mb-4">Choose the perfect telecom plan for your needs. Compare features and select the best option.</p>
+
+            <% if (locals.error) { %>
+                <div class="alert alert-error">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <!-- Filter Section -->
+            <div class="plans-filter mb-4">
+                <button class="filter-btn active" onclick="filterPlans('all')">All Plans</button>
+                <button class="filter-btn" onclick="filterPlans('prepaid')">Prepaid</button>
+                <button class="filter-btn" onclick="filterPlans('postpaid')">Postpaid</button>
+                <button class="filter-btn" onclick="filterPlans('data')">Data Only</button>
+                <button class="filter-btn" onclick="filterPlans('popular')">Popular</button>
+            </div>
+
+            <!-- Plans Grid -->
+            <div class="plans-grid" id="plansGrid">
+                <% if (plans && plans.length > 0) { %>
+                    <% plans.forEach(plan => { %>
+                        <div class="plan-card <%= plan.is_popular ? 'popular' : '' %>" data-category="<%= plan.category %>">
+                            <% if (plan.is_popular) { %>
+                                <div class="popular-badge">Popular</div>
+                            <% } %>
+                            <div class="plan-header">
+                                <div class="plan-name"><%= plan.name %></div>
+                                <div class="plan-price">₹<%= plan.price %><span class="currency">/month</span></div>
+                            </div>
+                            <div class="plan-description"><%= plan.description %></div>
+                            <ul class="plan-features">
+                                <% if (plan.features && plan.features.length > 0) { %>
+                                    <% plan.features.forEach(feature => { %>
+                                        <li><%= feature %></li>
+                                    <% }); %>
+                                <% } else { %>
+                                    <li>Category: <%= plan.category %></li>
+                                    <li>Duration: <%= plan.duration %></li>
+                                <% } %>
+                            </ul>
+                            <div class="plan-actions">
+                                <button class="btn btn-secondary" onclick="viewPlanDetails('<%= plan.id %>')">
+                                    View Details
+                                </button>
+                                <button class="btn" onclick="selectPlan('<%= plan.id %>')">
+                                    Select Plan
+                                </button>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <p>No plans available at the moment.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plan Details Modal -->
+    <div id="planModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalPlanName">Plan Details</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Plan details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn" id="subscribePlan">Subscribe to Plan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const plans = <%- JSON.stringify(plans) %>;
+        let selectedPlan = null;
+
+        function filterPlans(category) {
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filter plan cards
+            const planCards = document.querySelectorAll('.plan-card');
+            planCards.forEach(card => {
+                if (category === 'all') {
+                    card.style.display = 'block';
+                } else if (category === 'popular') {
+                    card.style.display = card.classList.contains('popular') ? 'block' : 'none';
+                } else {
+                    card.style.display = card.dataset.category === category ? 'block' : 'none';
+                }
+            });
+        }
+
+        function viewPlanDetails(planId) {
+            const plan = plans.find(p => p.id === planId);
+            if (!plan) return;
+
+            selectedPlan = plan;
+            
+            document.getElementById('modalPlanName').textContent = plan.name;
+            document.getElementById('modalBody').innerHTML = `
+                <div class="plan-details">
+                    <div class="plan-price-large">₹${plan.price}<span class="currency">/month</span></div>
+                    <p class="plan-description-large">${plan.description}</p>
+                    
+                    <h3>Plan Features:</h3>
+                    <ul class="plan-features-detailed">
+                        <li><strong>Data:</strong> ${plan.data}</li>
+                        <li><strong>Voice Calls:</strong> ${plan.calls}</li>
+                        <li><strong>SMS:</strong> ${plan.sms}</li>
+                        <li><strong>Validity:</strong> ${plan.validity} days</li>
+                        <li><strong>Category:</strong> ${plan.category}</li>
+                        <li><strong>Network:</strong> 4G/5G</li>
+                    </ul>
+                    
+                    <h3>Additional Benefits:</h3>
+                    <ul class="plan-benefits">
+                        <li>Free roaming within India</li>
+                        <li>24/7 customer support</li>
+                        <li>Online account management</li>
+                        <li>Auto-renewal option available</li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('planModal').style.display = 'block';
+        }
+
+        function selectPlan(planId) {
+            // Redirect to checkout page
+            window.location.href = `/checkout/${planId}`;
+        }
+
+        function closeModal() {
+            document.getElementById('planModal').style.display = 'none';
+            selectedPlan = null;
+        }
+
+        // Subscribe from modal
+        document.getElementById('subscribePlan').addEventListener('click', async () => {
+            if (!selectedPlan) return;
+
+            try {
+                const subscribeBtn = document.getElementById('subscribePlan');
+                subscribeBtn.disabled = true;
+                subscribeBtn.textContent = 'Processing...';
+
+                const response = await fetch('/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ plan_id: selectedPlan.id })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Plan subscription successful!');
+                    closeModal();
+                    window.location.href = '/dashboard';
+                } else {
+                    alert(data.error || 'Subscription failed');
+                }
+            } catch (error) {
+                console.error('Subscription error:', error);
+                alert('Network error during subscription');
+            } finally {
+                const subscribeBtn = document.getElementById('subscribePlan');
+                subscribeBtn.disabled = false;
+                subscribeBtn.textContent = 'Subscribe to Plan';
+            }
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('planModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Check for selected plan from URL
+        <% if (selectedPlan) { %>
+            setTimeout(() => {
+                viewPlanDetails(<%= selectedPlan %>);
+            }, 500);
+        <% } %>
+    </script>
+
+    <style>
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .close {
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .plan-price-large {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .plan-price-large .currency {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .plan-description-large {
+            font-size: 1.1rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+        
+        .plan-features-detailed,
+        .plan-benefits {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .plan-features-detailed li,
+        .plan-benefits li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .plan-features-detailed li:before,
+        .plan-benefits li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .plan-details h3 {
+            color: #333;
+            margin: 1.5rem 0 1rem 0;
+        }
+    </style>
+</body>
+</html>

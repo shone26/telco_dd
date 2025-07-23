@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - TeleConnect</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">TeleConnect</div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/plans">Plans</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                <span>Welcome, <%= user.username %></span>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <h1>Checkout</h1>
+            <p class="mb-4">Complete your plan subscription</p>
+
+            <% if (locals.error) { %>
+                <div class="alert alert-error">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <div class="checkout-container">
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h2>Order Summary</h2>
+                    <% if (plan) { %>
+                        <div class="plan-summary">
+                            <div class="plan-header">
+                                <h3><%= plan.name %></h3>
+                                <% if (plan.popular) { %>
+                                    <span class="popular-badge">Popular</span>
+                                <% } %>
+                            </div>
+                            <p class="plan-description"><%= plan.description %></p>
+                            <ul class="plan-features">
+                                <li>Data: <%= plan.data %></li>
+                                <li>Calls: <%= plan.calls %></li>
+                                <li>SMS: <%= plan.sms %></li>
+                                <li>Validity: <%= plan.validity %> days</li>
+                            </ul>
+                            <div class="price-breakdown">
+                                <div class="price-item">
+                                    <span>Plan Price:</span>
+                                    <span>₹<%= plan.price %></span>
+                                </div>
+                                <div class="price-item">
+                                    <span>Taxes & Fees:</span>
+                                    <span>₹<%= Math.round(plan.price * 0.18) %></span>
+                                </div>
+                                <div class="price-item total">
+                                    <span><strong>Total Amount:</strong></span>
+                                    <span><strong>₹<%= plan.price + Math.round(plan.price * 0.18) %></strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <p>Plan not found. <a href="/plans">Browse plans</a></p>
+                    <% } %>
+                </div>
+
+                <!-- Payment Form -->
+                <div class="payment-form">
+                    <h2>Payment Details</h2>
+                    <form id="checkoutForm">
+                        <input type="hidden" id="planId" value="<%= plan ? plan.id : '' %>">
+                        
+                        <!-- Payment Method Selection -->
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <div class="payment-methods">
+                                <label class="payment-method-option">
+                                    <input type="radio" name="payment_method" value="credit_card" checked>
+                                    <span class="method-label">Credit Card</span>
+                                </label>
+                                <label class="payment-method-option">
+                                    <input type="radio" name="payment_method" value="debit_card">
+                                    <span class="method-label">Debit Card</span>
+                                </label>
+                                <label class="payment-method-option">
+                                    <input type="radio" name="payment_method" value="upi">
+                                    <span class="method-label">UPI</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Card Details (shown for card payments) -->
+                        <div id="cardDetails" class="card-details">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="cardNumber">Card Number</label>
+                                    <input type="text" id="cardNumber" name="card_number" value="4000 0566 5566 5556" maxlength="19" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cardHolder">Card Holder Name</label>
+                                    <input type="text" id="cardHolder" name="card_holder_name" value="<%= user.first_name %> <%= user.last_name %>" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="expiryMonth">Expiry Month</label>
+                                    <select id="expiryMonth" name="expiry_month" required>
+                                        <option value="">MM</option>
+                                        <% for(let i = 1; i <= 12; i++) { %>
+                                            <option value="<%= i.toString().padStart(2, '0') %>" <%= i === 12 ? 'selected' : '' %>><%= i.toString().padStart(2, '0') %></option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="expiryYear">Expiry Year</label>
+                                    <select id="expiryYear" name="expiry_year" required>
+                                        <option value="">YYYY</option>
+                                        <% for(let i = new Date().getFullYear(); i <= new Date().getFullYear() + 10; i++) { %>
+                                            <option value="<%= i %>" <%= i === new Date().getFullYear() + 2 ? 'selected' : '' %>><%= i %></option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cvv">CVV</label>
+                                    <input type="text" id="cvv" name="cvv" value="123" maxlength="4" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- UPI Details (shown for UPI payments) -->
+                        <div id="upiDetails" class="upi-details" style="display: none;">
+                            <div class="form-group">
+                                <label for="upiId">UPI ID</label>
+                                <input type="text" id="upiId" name="upi_id" value="<%= user.username %>@paytm">
+                            </div>
+                        </div>
+
+                        <!-- Billing Address -->
+                        <div class="billing-address">
+                            <h3>Billing Address</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="address">Address</label>
+                                    <input type="text" id="address" name="address" value="123 Main Street, Sector 1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="city">City</label>
+                                    <input type="text" id="city" name="city" value="Mumbai">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="state">State</label>
+                                    <input type="text" id="state" name="state" value="Maharashtra">
+                                </div>
+                                <div class="form-group">
+                                    <label for="pincode">PIN Code</label>
+                                    <input type="text" id="pincode" name="pincode" value="400001" maxlength="6">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="agreeTerms" required>
+                                <span class="checkmark"></span>
+                                I agree to the <a href="#" target="_blank">Terms and Conditions</a>
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary" id="payButton">
+                            <span id="payButtonText">Pay ₹<%= plan ? plan.price + Math.round(plan.price * 0.18) : 0 %></span>
+                            <span id="payButtonSpinner" class="loading hidden"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Format card number input
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+
+        // Show/hide payment method details
+        document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const cardDetails = document.getElementById('cardDetails');
+                const upiDetails = document.getElementById('upiDetails');
+                
+                if (this.value === 'credit_card' || this.value === 'debit_card') {
+                    cardDetails.style.display = 'block';
+                    upiDetails.style.display = 'none';
+                } else if (this.value === 'upi') {
+                    cardDetails.style.display = 'none';
+                    upiDetails.style.display = 'block';
+                } else {
+                    cardDetails.style.display = 'none';
+                    upiDetails.style.display = 'none';
+                }
+            });
+        });
+
+        // Handle form submission
+        document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const payButton = document.getElementById('payButton');
+            const payButtonText = document.getElementById('payButtonText');
+            const payButtonSpinner = document.getElementById('payButtonSpinner');
+            
+            // Show loading state
+            payButton.disabled = true;
+            payButtonText.classList.add('hidden');
+            payButtonSpinner.classList.remove('hidden');
+            
+            try {
+                const formData = new FormData(this);
+                const paymentData = {
+                    plan_id: document.getElementById('planId').value,
+                    payment_method: formData.get('payment_method'),
+                    card_number: formData.get('card_number'),
+                    card_holder_name: formData.get('card_holder_name'),
+                    expiry_month: formData.get('expiry_month'),
+                    expiry_year: formData.get('expiry_year'),
+                    cvv: formData.get('cvv'),
+                    upi_id: formData.get('upi_id'),
+                    billing_address: {
+                        address: formData.get('address'),
+                        city: formData.get('city'),
+                        state: formData.get('state'),
+                        pincode: formData.get('pincode')
+                    }
+                };
+
+                const response = await fetch('/process-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Payment successful! Your plan has been activated.');
+                    window.location.href = '/dashboard';
+                } else {
+                    alert(result.error || 'Payment failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Network error. Please try again.');
+            } finally {
+                // Reset button state
+                payButton.disabled = false;
+                payButtonText.classList.remove('hidden');
+                payButtonSpinner.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <style>
+        .checkout-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .order-summary {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            height: fit-content;
+        }
+
+        .payment-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .plan-summary {
+            margin-bottom: 2rem;
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .price-breakdown {
+            border-top: 1px solid #dee2e6;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-item.total {
+            border-top: 1px solid #dee2e6;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .payment-method-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-method-option:has(input:checked) {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .payment-method-option input {
+            margin-right: 0.5rem;
+        }
+
+        .card-details, .upi-details {
+            margin-bottom: 2rem;
+        }
+
+        .billing-address {
+            margin-bottom: 2rem;
+        }
+
+        .billing-address h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-label input {
+            margin-right: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .payment-methods {
+                flex-direction: column;
+            }
+        }
+    </style>
+</body>
+</html>

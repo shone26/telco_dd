@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TeleConnect</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">TeleConnect</div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="/dashboard" class="active">Dashboard</a></li>
+                    <li><a href="/plans">Plans</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                <span>Welcome, <%= user.username %></span>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <h1>Dashboard</h1>
+            <p class="mb-4">Welcome to your telecom services dashboard. Manage your plans, view usage, and more.</p>
+
+            <% if (locals.error) { %>
+                <div class="alert alert-error">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Current Plan Card -->
+                <div class="dashboard-card current-plan">
+                    <h3>Current Plan</h3>
+                    <% if (dashboard && dashboard.current_plan) { %>
+                        <div class="plan-status status-<%= dashboard.current_plan.status || 'active' %>">
+                            <%= (dashboard.current_plan.status || 'ACTIVE').toUpperCase() %>
+                        </div>
+                        <h4><%= dashboard.current_plan.plan_name || dashboard.current_plan.name %></h4>
+                        <p class="plan-price">₹<%= dashboard.current_plan.price %><span class="currency">/month</span></p>
+                        <p><strong>Category:</strong> <%= dashboard.current_plan.plan_category || dashboard.current_plan.category %></p>
+                        <% if (dashboard.current_plan.renewal_date) { %>
+                            <p><strong>Renewal Date:</strong> <%= new Date(dashboard.current_plan.renewal_date).toLocaleDateString() %></p>
+                        <% } %>
+                        <% if (dashboard.current_plan.days_until_renewal) { %>
+                            <p><strong>Days Until Renewal:</strong> <%= dashboard.current_plan.days_until_renewal %></p>
+                        <% } %>
+                    <% } else { %>
+                        <p>No active plan</p>
+                        <a href="/plans" class="btn">Choose a Plan</a>
+                    <% } %>
+                </div>
+
+                <!-- Account Status Card -->
+                <div class="dashboard-card">
+                    <h3>Account Status</h3>
+                    <% if (dashboard) { %>
+                        <div class="status-item mb-2">
+                            <strong>Account Type:</strong> <%= user.email ? 'Premium' : 'Basic' %>
+                        </div>
+                        <div class="status-item mb-2">
+                            <strong>Member Since:</strong> <%= new Date(dashboard.user.member_since).toLocaleDateString() %>
+                        </div>
+                        <div class="status-item mb-2">
+                            <strong>Status:</strong> <span class="status-active">Active</span>
+                        </div>
+                        <div class="status-item mb-2">
+                            <strong>Active Plans:</strong> <%= dashboard.statistics.active_plans %>
+                        </div>
+                        <div class="status-item">
+                            <strong>Total Spent:</strong> ₹<%= dashboard.statistics.total_spent %>
+                        </div>
+                    <% } else { %>
+                        <p>Loading account status...</p>
+                    <% } %>
+                </div>
+
+                <!-- Quick Actions Card -->
+                <div class="dashboard-card">
+                    <h3>Quick Actions</h3>
+                    <div class="flex gap-2" style="flex-direction: column;">
+                        <a href="/plans" class="btn btn-secondary">Browse Plans</a>
+                        <a href="/profile" class="btn btn-secondary">Update Profile</a>
+                        <button class="btn btn-secondary" onclick="window.location.reload()">Refresh Data</button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Card -->
+                <div class="dashboard-card">
+                    <h3>Recent Activity</h3>
+                    <% if (dashboard && dashboard.recent_activity && dashboard.recent_activity.length > 0) { %>
+                        <div class="activity-list">
+                            <% dashboard.recent_activity.forEach(activity => { %>
+                                <div class="activity-item mb-2" style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                                    <div style="font-size: 0.9rem; color: #666;">
+                                        <%= new Date(activity.created_at).toLocaleDateString() %> - 
+                                        <%= activity.transaction_type || activity.type %> - 
+                                        ₹<%= activity.amount || 0 %>
+                                        <% if (activity.status) { %>(<%= activity.status %>)<% } %>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="activity-list">
+                            <div class="activity-item mb-2" style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                                <div style="font-size: 0.9rem; color: #666;">
+                                    <%= new Date().toLocaleDateString() %> - Logged in to dashboard
+                                </div>
+                            </div>
+                            <div class="activity-item mb-2" style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                                <div style="font-size: 0.9rem; color: #666;">
+                                    <%= new Date(Date.now() - 86400000).toLocaleDateString() %> - Account created
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Available Plans Section -->
+            <div class="main-content">
+                <h2>Available Plans</h2>
+                <p class="mb-3">Explore our telecom plans and upgrade your service.</p>
+                <div class="plans-grid">
+                    <% if (plans && plans.length > 0) { %>
+                        <% plans.forEach(plan => { %>
+                            <div class="plan-card <%= plan.is_popular ? 'popular' : '' %>">
+                                <% if (plan.is_popular) { %>
+                                    <div class="popular-badge">Popular</div>
+                                <% } %>
+                                <div class="plan-header">
+                                    <div class="plan-name"><%= plan.name %></div>
+                                    <div class="plan-price">₹<%= plan.price %><span class="currency">/month</span></div>
+                                </div>
+                                <div class="plan-description"><%= plan.description %></div>
+                                <ul class="plan-features">
+                                    <% if (plan.features && plan.features.length > 0) { %>
+                                        <% plan.features.forEach(feature => { %>
+                                            <li><%= feature %></li>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <li>Category: <%= plan.category %></li>
+                                        <li>Duration: <%= plan.duration %></li>
+                                    <% } %>
+                                </ul>
+                                <button class="btn" onclick="selectPlan('<%= plan.id %>')">
+                                    Select Plan
+                                </button>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p>No plans available at the moment.</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectPlan(planId) {
+            // Redirect to checkout page
+            window.location.href = `/checkout/${planId}`;
+        }
+    </script>
+
+    <style>
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none !important;
+        }
+    </style>
+</body>
+</html>

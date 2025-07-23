@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - TeleConnect</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <% if (user) { %>
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">TeleConnect</div>
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="/dashboard">Dashboard</a></li>
+                        <li><a href="/plans">Plans</a></li>
+                        <li><a href="/profile">Profile</a></li>
+                    </ul>
+                </nav>
+                <div class="user-info">
+                    <span>Welcome, <%= user.username %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+        </header>
+    <% } %>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content text-center">
+            <h1>Oops! Something went wrong</h1>
+            <div class="alert alert-error">
+                <%= error %>
+            </div>
+            <div class="mt-4">
+                <% if (user) { %>
+                    <a href="/dashboard" class="btn">Go to Dashboard</a>
+                <% } else { %>
+                    <a href="/login" class="btn">Go to Login</a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
